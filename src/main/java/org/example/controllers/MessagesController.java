@@ -1,20 +1,19 @@
 package org.example.controllers;
 
+import lombok.RequiredArgsConstructor;
 import org.example.dtos.MessageDto;
 import org.example.services.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+@RequiredArgsConstructor
+
 @RestController
 public class MessagesController {
 	private final MessageService messageService;
 	private final AuthorizationService authorizationService;
 
-	public MessagesController(MessageService messageService, AuthorizationService authorizationService) {
-		this.messageService = messageService;
-		this.authorizationService = authorizationService;
-	}
 
 	@GetMapping(value = "/messages/user1/{userId1}/user2/{userId2}/with-limit")
 	public List<MessageDto> getMessages(@RequestHeader UUID token,

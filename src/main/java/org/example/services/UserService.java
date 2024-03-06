@@ -1,5 +1,6 @@
 package org.example.services;
 
+import lombok.RequiredArgsConstructor;
 import org.example.dtos.*;
 import org.example.entities.UserEntity;
 import org.example.exceptions.UserException;
@@ -12,12 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.ZonedDateTime;
 import java.util.*;
 
+@RequiredArgsConstructor
+
 @Service
 public class UserService {
 
 	private final UserRepository userRepository;
-
-	public UserService(UserRepository userRepository) {this.userRepository = userRepository;}
 
 
 	@Transactional
@@ -31,7 +32,7 @@ public class UserService {
 		UserEntity userEntity = new UserEntity();
 		userEntity.setId(UUID.randomUUID());
 		userEntity.setPhone(newUser.getPhone());
-		userEntity.setName(newUser.getPhone()+"");
+		userEntity.setName(newUser.getPhone() + "");
 		String encodePassword = PasswordUtils.encodePassword(newUser.getPassword());
 		userEntity.setPassword(encodePassword);
 		userEntity.setCreatedAt(ZonedDateTime.now());
@@ -52,8 +53,7 @@ public class UserService {
 		entityUser.setStatus(userDto.getStatus());
 		entityUser.setInfo(userDto.getInfo());
 		UserEntity save = userRepository.save(entityUser);
-		UserDto user = UserMapper.userToDto(save);
-		return user;
+		return UserMapper.userToDto(save);
 	}
 
 	public UserDto getUserById(UUID userId) {
@@ -61,30 +61,23 @@ public class UserService {
 		if (entityOptional.isEmpty()) {
 			throw new UserException("Пользователь не найден");
 		}
-		UserDto userDto = UserMapper.userToDto(entityOptional.get());
-		return userDto;
+		return UserMapper.userToDto(entityOptional.get());
 	}
 
+
 	public UserDto getByFilters(String name, Long phone) {
-		UserDto userDto = null;
-		if (Objects.isNull(name) & Objects.isNull(phone)) {
+		if (Objects.isNull(name) && Objects.isNull(phone)) {
 			throw new UserException("Нет данных для поиска");
 		}
-		if (Objects.isNull(name) & Objects.nonNull(phone)) {
+		if (Objects.nonNull(phone)) {
 			UserEntity userEntity = userRepository.findByPhone(phone);
-			UserDto userDto1 = UserMapper.userToDto(userEntity);
-			userDto = userDto1;
-			return userDto;
-		}
-		if (Objects.nonNull(name) & Objects.isNull(phone)) {
-			UserEntity userEntity = userRepository.findByName(name);
-			UserDto userDto2 = UserMapper.userToDto(userEntity);
-			userDto = userDto2;
-			return userDto;
+			return UserMapper.userToDto(userEntity);
 		}
 		else {
-			throw new UserException("Поиск только по имени или номеру телефона");
+			UserEntity userEntity = userRepository.findByName(name);
+			return UserMapper.userToDto(userEntity);
 		}
+
 	}
 
 

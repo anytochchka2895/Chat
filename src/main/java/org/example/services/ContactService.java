@@ -1,5 +1,6 @@
 package org.example.services;
 
+import lombok.RequiredArgsConstructor;
 import org.example.dtos.*;
 import org.example.entities.*;
 import org.example.exceptions.ContactException;
@@ -9,17 +10,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
+
+@RequiredArgsConstructor
 
 @Service
 public class ContactService {
 
 	private final ContactRepository contactRepository;
 	private final UserRepository userRepository;
-
-	public ContactService(ContactRepository contactRepository, UserRepository userRepository) {
-		this.contactRepository = contactRepository;
-		this.userRepository = userRepository;
-	}
 
 
 	@Transactional
@@ -76,30 +75,33 @@ public class ContactService {
 
 
 	public List<ContactDto> showAll(UUID userId) {
-		List<ContactEntity> contactsEntitys = contactRepository.findAllByCurrentUserIdOrderByTimeLastMessageDesc(userId);
-		List<UUID> friendsIds = new ArrayList<>();
-		for (ContactEntity contactEntity : contactsEntitys) {
-			friendsIds.add(contactEntity.getFriendId());
-		}
+		List<ContactEntity> contactsEntities = contactRepository.findAllByCurrentUserIdOrderByTimeLastMessageDesc(userId);
+		List<UUID> friendsIds = contactsEntities
+				.stream()
+				.map(ContactEntity::getFriendId)
+				.collect(Collectors.toList());
+
 		List<UserEntity> friendsUsersEntities = userRepository.findAllById(friendsIds);
 
-		Map<UUID, String> friendsIdsNames = new HashMap<>();
+		Map<UUID, String> friendsIdsNames = friendsUsersEntities
+				.stream()
+				.collect(Collectors.toMap(UserEntity::getId, UserEntity::getName));
 
-		for (UserEntity userEntity : friendsUsersEntities) {
-			friendsIdsNames.put(userEntity.getId(), userEntity.getName());
-		}
-
-		List<ContactDto> contactDtos = new ArrayList<>();
-		for (ContactEntity contactEntity : contactsEntitys) {
-			ContactDto contactDto = new ContactDto();
-			contactDto.setId(contactEntity.getId());
-			contactDto.setFriendId(contactEntity.getFriendId());
-			String friendName = friendsIdsNames.get(contactEntity.getFriendId());
-			contactDto.setFriendName(friendName);
-			contactDto.setTimeLastMessage(contactEntity.getTimeLastMessage());
-			contactDtos.add(contactDto);
-		}
+		List<ContactDto> contactDtos = contactsEntities
+				.stream()
+				.map(contactEntity -> toContactDto(contactEntity, friendsIdsNames))
+				.toList();
 
 		return contactDtos;
+	}
+
+	public ContactDto toContactDto(ContactEntity contactEntity, Map<UUID, String> friendsIdsNames) {
+		ContactDto contactDto = new ContactDto();
+		contactDto.setId(contactEntity.getId());
+		contactDto.setFriendId(contactEntity.getFriendId());
+		String friendName = friendsIdsNames.get(contactEntity.getFriendId());
+		contactDto.setFriendName(friendName);
+		contactDto.setTimeLastMessage(contactEntity.getTimeLastMessage());
+		return contactDto;
 	}
 }

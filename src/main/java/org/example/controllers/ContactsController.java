@@ -1,20 +1,18 @@
 package org.example.controllers;
 
+import lombok.AllArgsConstructor;
 import org.example.dtos.*;
 import org.example.services.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+@AllArgsConstructor
+
 @RestController
 public class ContactsController {
 	private final AuthorizationService authorizationService;
 	private final ContactService contactService;
-
-	public ContactsController(AuthorizationService authorizationService, ContactService contactService) {
-		this.authorizationService = authorizationService;
-		this.contactService = contactService;
-	}
 
 
 	@PostMapping(value = "/contacts")

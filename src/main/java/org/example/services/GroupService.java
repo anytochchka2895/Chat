@@ -1,5 +1,6 @@
 package org.example.services;
 
+import lombok.RequiredArgsConstructor;
 import org.example.dtos.*;
 import org.example.entities.*;
 import org.example.exceptions.GroupException;
@@ -10,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
+
+@RequiredArgsConstructor
 
 @Service
 public class GroupService {
@@ -17,16 +21,6 @@ public class GroupService {
 	private final MessageGroupRepository messageGroupRepository;
 	private final UserGroupRepository userGroupRepository;
 	private final UserRepository userRepository;
-
-	public GroupService(GroupRepository groupRepository,
-	                    MessageGroupRepository messageGroupRepository,
-	                    UserGroupRepository userGroupRepository, UserRepository userRepository) {
-		this.groupRepository = groupRepository;
-		this.messageGroupRepository = messageGroupRepository;
-		this.userGroupRepository = userGroupRepository;
-		this.userRepository = userRepository;
-	}
-
 
 
 	@Transactional
@@ -43,7 +37,6 @@ public class GroupService {
 
 		return GroupMapper.groupToDto(groupEntity);
 	}
-
 
 
 	@Transactional
@@ -63,13 +56,10 @@ public class GroupService {
 	}
 
 
-
 	@Transactional
 	public void deleteUserFromGroup(UUID groupId, UUID userId) {
 		userGroupRepository.deleteByGroupIdAndUserId(groupId, userId);
 	}
-
-
 
 
 	public List<GroupDto> showAllGroupsByUser(UUID userId) {
@@ -78,61 +68,54 @@ public class GroupService {
 	}
 
 
-
-
 	public List<MessageGroupDto> showMessagesFromGroup(UUID groupId, int limit) {
 		List<MessageGroupEntity> messageGroupEntityList = messageGroupRepository.findAllByGroupIdWithLimit(groupId, limit);
 
-		List<UUID> usersIds = new ArrayList<>();
-		for (MessageGroupEntity entity : messageGroupEntityList) {
-			usersIds.add(entity.getFromUserId());
-		}
-
-//		List<UUID> uuids = messageGroupEntityList.stream()
-//				.map(MessageGroupEntity::getFromUserId)
-//				.toList();
+		List<UUID> usersIds = messageGroupEntityList
+				.stream()
+				.map(MessageGroupEntity::getFromUserId)
+				.toList();
 
 		List<UserEntity> usersByIdEntities = userRepository.findAllById(usersIds);
 
-		Map<UUID, String> usersByIdNames = new HashMap<>();
-		for (UserEntity userEntity : usersByIdEntities) {
-			usersByIdNames.put(userEntity.getId(), userEntity.getName());
-		}
+		Map<UUID, String> usersByIdNames = usersByIdEntities
+				.stream()
+				.collect(Collectors.toMap(UserEntity::getId, UserEntity::getName));
 
-		List<MessageGroupDto> dtoList = new ArrayList<>();
-		for (MessageGroupEntity entity : messageGroupEntityList) {
-			MessageGroupDto messageGroupDto = new MessageGroupDto(entity.getGroupId(),
-			                                                      entity.getFromUserId(),
-			                                                      usersByIdNames.get(entity.getFromUserId()),
-			                                                      entity.getGroupId(),
-			                                                      entity.getText(),
-			                                                      entity.getCreatedAt());
-			dtoList.add(messageGroupDto);
-		}
+		List<MessageGroupDto> dtoList = messageGroupEntityList
+				.stream()
+				.map(messageGroupEntity -> messageGroupToDto(messageGroupEntity, usersByIdNames))
+				.toList();
 
 		return dtoList;
 	}
 
-
+	public MessageGroupDto messageGroupToDto(MessageGroupEntity messageGroupEntity, Map<UUID, String> usersByIdNames) {
+		return new MessageGroupDto(messageGroupEntity.getGroupId(),
+		                           messageGroupEntity.getFromUserId(),
+		                           usersByIdNames.get(messageGroupEntity.getFromUserId()),
+		                           messageGroupEntity.getGroupId(),
+		                           messageGroupEntity.getText(),
+		                           messageGroupEntity.getCreatedAt());
+	}
 
 
 	public List<UserDto> showAllUsersInGroup(UUID groupId) {
 		List<UserGroupEntity> allUsersByGroupId = userGroupRepository.findAllByGroupId(groupId);
 
-		List<UUID> userIds = new ArrayList<>();
-		for (UserGroupEntity userGroupEntity : allUsersByGroupId) {
-			userIds.add(userGroupEntity.getUserId());
-		}
+		List<UUID> userIds = allUsersByGroupId
+				.stream()
+				.map(UserGroupEntity::getUserId)
+				.toList();
 
 		List<UserEntity> allUsersEntityByIds = userRepository.findAllById(userIds);
-		List<UserDto> usersDtos = new ArrayList<>();
-		for (UserEntity entity : allUsersEntityByIds) {
-			UserDto toDto = UserMapper.userToDto(entity);
-			usersDtos.add(toDto);
-		}
+
+		List<UserDto> usersDtos = allUsersEntityByIds
+				.stream()
+				.map(UserMapper::userToDto)
+				.toList();
 		return usersDtos;
 	}
-
 
 
 	@Transactional
@@ -161,7 +144,6 @@ public class GroupService {
 	}
 
 
-
 	@Transactional
 	public void deleteMessageFromGroupByCurrentUser(UUID currentUserId, UUID messageId) {
 		Optional<MessageGroupEntity> messageGroupRepositoryById = messageGroupRepository.findById(messageId);
@@ -174,17 +156,15 @@ public class GroupService {
 	}
 
 
-
 	@Transactional
 	public GroupDto updateGroup(GroupDto groupDto) {
 		GroupEntity groupEntity = groupRepository.findById(groupDto.getId())
-				.orElseThrow(()->new GroupException("Группа не найдена"));
+		                                         .orElseThrow(() -> new GroupException("Группа не найдена"));
 		groupEntity.setName(groupDto.getName());
 		groupEntity.setInfo(groupDto.getInfo());
 		GroupEntity save = groupRepository.save(groupEntity);
 		return GroupMapper.groupToDto(save);
 	}
-
 
 
 	@Transactional

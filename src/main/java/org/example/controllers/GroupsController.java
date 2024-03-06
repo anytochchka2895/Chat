@@ -13,11 +13,6 @@ public class GroupsController {
 	private final AuthorizationService authorizationService;
 	private final GroupService groupService;
 
-//	public GroupsController(AuthorizationService authorizationService, GroupService groupService) {
-//		this.authorizationService = authorizationService;
-//		this.groupService = groupService;
-//	}
-
 
 	@PostMapping(value = "/groups/create")
 	public GroupDto newGroup(@RequestHeader UUID token, @RequestBody CreateGroupDto createGroupDto) {
