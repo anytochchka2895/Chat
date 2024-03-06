@@ -1,5 +1,6 @@
 package org.example.services;
 
+import lombok.RequiredArgsConstructor;
 import org.example.dtos.*;
 import org.example.entities.*;
 import org.example.exceptions.*;
@@ -12,17 +13,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.ZonedDateTime;
 import java.util.*;
 
+@RequiredArgsConstructor
+
 @Service
 public class AuthorizationService {
 	private final UserRepository userRepository;
 	private final TokenRepository tokenRepository;
 
-	public AuthorizationService(UserRepository userRepository, TokenRepository tokenRepository) {
-		this.userRepository = userRepository;
-		this.tokenRepository = tokenRepository;
-	}
 
-	private static final int TOKEN_EXPIRED_INTERVAL_MINUTES = 59;
+	private static final int TOKEN_EXPIRED_INTERVAL_MINUTES = 1080;
 
 	@Transactional
 	public TokenDto authorization (UserLoginDto userLoginDto) {

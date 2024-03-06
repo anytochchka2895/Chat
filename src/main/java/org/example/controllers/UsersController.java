@@ -1,20 +1,18 @@
 package org.example.controllers;
 
+import lombok.RequiredArgsConstructor;
 import org.example.dtos.*;
 import org.example.services.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@RequiredArgsConstructor
+
 @RestController
 public class UsersController {
 	private final UserService userService;
 	private final AuthorizationService authorizationService;
-
-	public UsersController(UserService userService, AuthorizationService authorizationService) {
-		this.userService = userService;
-		this.authorizationService = authorizationService;
-	}
 
 
 	@PostMapping(value = "/users")
