@@ -1,13 +1,13 @@
 package org.example.controllers;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.example.dtos.*;
 import org.example.services.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 
 @RestController
 public class ContactsController {
