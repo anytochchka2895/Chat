@@ -14,7 +14,6 @@ import java.time.ZonedDateTime;
 import java.util.*;
 
 @RequiredArgsConstructor
-
 @Service
 public class AuthorizationService {
 	private final UserRepository userRepository;
@@ -48,19 +47,21 @@ public class AuthorizationService {
 		else {
 			tokenEntity.setCreatedAt(ZonedDateTime.now());
 			tokenEntity.setExpiredAt(ZonedDateTime.now().plusMinutes(TOKEN_EXPIRED_INTERVAL_MINUTES));
-			TokenEntity saved = tokenRepository.save(tokenEntity);
-			return TokenMapper.tokenToDto(saved);
+			tokenRepository.save(tokenEntity);
+			return TokenMapper.tokenToDto(tokenEntity);
 		}
 	}
+
 
 	private TokenDto createToken(UUID userId) {
 		TokenEntity newTokenEntity = new TokenEntity(userId,
 		                                             UUID.randomUUID(),
 		                                             ZonedDateTime.now(),
 		                                             ZonedDateTime.now().plusMinutes(TOKEN_EXPIRED_INTERVAL_MINUTES));
-		TokenEntity saved = tokenRepository.save(newTokenEntity);
-		return TokenMapper.tokenToDto(saved);
+		tokenRepository.save(newTokenEntity);
+		return TokenMapper.tokenToDto(newTokenEntity);
 	}
+
 
 	public void validateToken(UUID token){
 		TokenEntity tokenEntity = tokenRepository.findByToken(token);

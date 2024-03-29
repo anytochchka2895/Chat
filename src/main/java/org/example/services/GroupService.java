@@ -14,7 +14,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-
 @Service
 public class GroupService {
 	private final GroupRepository groupRepository;
@@ -41,13 +40,12 @@ public class GroupService {
 
 	@Transactional
 	public void addUserInGroup(UUID groupId, UUID userId) {
-		UserGroupEntity userGroupEntity = new UserGroupEntity();
-		userGroupEntity.setId(UUID.randomUUID());
-		userGroupEntity.setGroupId(groupId);
-		userGroupEntity.setUserId(userId);
-
 		Optional<UserGroupEntity> find = userGroupRepository.findByGroupIdAndUserId(groupId, userId);
 		if (find.isEmpty()) {
+			UserGroupEntity userGroupEntity = new UserGroupEntity();
+			userGroupEntity.setId(UUID.randomUUID());
+			userGroupEntity.setGroupId(groupId);
+			userGroupEntity.setUserId(userId);
 			userGroupRepository.save(userGroupEntity);
 		}
 		else {
@@ -90,7 +88,7 @@ public class GroupService {
 		return dtoList;
 	}
 
-	public MessageGroupDto messageGroupToDto(MessageGroupEntity messageGroupEntity, Map<UUID, String> usersByIdNames) {
+	private MessageGroupDto messageGroupToDto(MessageGroupEntity messageGroupEntity, Map<UUID, String> usersByIdNames) {
 		return new MessageGroupDto(messageGroupEntity.getGroupId(),
 		                           messageGroupEntity.getFromUserId(),
 		                           usersByIdNames.get(messageGroupEntity.getFromUserId()),
