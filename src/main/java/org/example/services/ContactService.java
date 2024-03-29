@@ -13,7 +13,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-
 @Service
 public class ContactService {
 
@@ -95,7 +94,7 @@ public class ContactService {
 		return contactDtos;
 	}
 
-	public ContactDto toContactDto(ContactEntity contactEntity, Map<UUID, String> friendsIdsNames) {
+	private ContactDto toContactDto(ContactEntity contactEntity, Map<UUID, String> friendsIdsNames) {
 		ContactDto contactDto = new ContactDto();
 		contactDto.setId(contactEntity.getId());
 		contactDto.setFriendId(contactEntity.getFriendId());
